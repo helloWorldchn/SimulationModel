@@ -3,26 +3,27 @@ import math
 import control as ctrl
 import matplotlib.pyplot as plt
 import numpy as np
+
+
 class TimeDomainAnalysis:
-    plt.rcParams["font.sans-serif"] = ["SimHei"]
-    def __init__(self, a = 1, b  = 6, c = 25) -> None:
+
+    def __init__(self, numeratorOri="25", denominatorOri="1 6 25") -> None:
         """
-        时域仿真设计
-        :param a:
-        :param b:
-        :param c:
+        1 时域仿真设计 单位阶跃响应 单位斜坡响应
+        :param numeratorOri: 分子字符串
+        :param denominatorOri: 分母字符串
         """
-        self.a = a # 重力加速度 (m/s^2)
-        self.b = b   # 最大时间 (s)
-        self.c = c  # 时间步长 (s)
-    a = 1
-    b = 6
-    c = 25
+        self.numeratorOri = numeratorOri  # 分子字符串
+        self.denominatorOri = denominatorOri  # 分母字符串
 
     def timeDomainAnalysis(self):
+        plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
+        plt.rcParams['axes.unicode_minus'] = False
         # 创建传递函数，例如 G(s) = 1 / (s^2 + 3s + 2)
-        numerator = [self.c]
-        denominator = [self.a, self.b, self.c]
+        # numerator = [self.c]
+        # denominator = [self.a, self.b, self.c]
+        numerator = [float(num) for num in self.numeratorOri.split()]
+        denominator = [float(num) for num in self.denominatorOri.split()]
         sys = ctrl.TransferFunction(numerator, denominator)
 
         # 计算单位阶跃响应
@@ -59,7 +60,6 @@ class TimeDomainAnalysis:
         print(f"超调量: {overshoot:.5f}%")
         print(f"调节时间（±2%范围内）: {settling_time:.5f} 秒" if not np.any(settling_time) else "调节时间: 未找到")
 
-
         # 计算单位斜坡响应
         # 由于control库没有ramp_response函数，我们可以使用forced_response函数
         # 单位斜坡信号可以表示为斜率为1的线性函数，即r(t) = t
@@ -68,8 +68,10 @@ class TimeDomainAnalysis:
         r_ramp = t_ramp  # 单位斜坡信号
         t_ramp, y_ramp = ctrl.forced_response(sys, t_ramp, r_ramp)
 
-        naturalFrequency = math.sqrt(self.c)  # 计算自然振荡频率
-        dampingRatio = self.b / 2 / naturalFrequency  # 计算阻尼比
+        last_two_elements = denominator[-2:]
+        linearFunctionCoefficient, constantCoefficient = last_two_elements
+        naturalFrequency = math.sqrt(constantCoefficient)  # 计算自然振荡频率
+        dampingRatio = linearFunctionCoefficient / 2 / naturalFrequency  # 计算阻尼比
 
         print(f"阻尼比: {dampingRatio:.2f}")
         print(f"自然振荡频率: {naturalFrequency:.2f}")

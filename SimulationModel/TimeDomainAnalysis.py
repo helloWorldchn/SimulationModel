@@ -101,3 +101,5 @@ class TimeDomainAnalysis:
         plt.grid(True)
 
         plt.show()
+
+        return rise_time, peak_time, overshoot,settling_time,dampingRatio,naturalFrequency,t_step, y_step,t_ramp, y_ramp

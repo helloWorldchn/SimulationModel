@@ -13,4 +13,4 @@ if __name__ == '__main__':
     elif flag == 2:
         RootLocus("1", "1 3 2 0", 10).rootLocus()
     elif flag == 3:
-        FrequencyDomain("10", "1 6 5 0").frequencyDomain()
+        gm, pm, wcg, wcp = FrequencyDomain("10", "1 6 5 0").frequencyDomain()

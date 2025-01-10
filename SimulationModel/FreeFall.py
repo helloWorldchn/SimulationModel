@@ -11,10 +11,10 @@ class FreeFall:
 
     def freeFall(self):
         # 创建时间数组
-        t = np.arange(0, self.t_max, self.dt)  # 从0到t_max以dt为步长生成时间数组
+        t = np.arange(0, float(self.t_max), float(self.dt))  # 从0到t_max以dt为步长生成时间数组
 
         # 计算落体高度
-        h = 0.5 * self.g * t**2  # 使用自由落体公式计算高度
+        h = 0.5 * float(self.g) * t**2  # 使用自由落体公式计算高度
 
         # 可视化结果
         plt.plot(t, h)
@@ -22,4 +22,5 @@ class FreeFall:
         plt.xlabel("时间 (s)")
         plt.ylabel("高度 (m)")
         plt.grid(True)  # 显示网格
+        plt.savefig("pic/FreeFall/freeFall.png")
         plt.show()  # 显示图形

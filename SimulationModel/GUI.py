@@ -2,15 +2,18 @@ import tkinter as tk
 from tkinter import Toplevel
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from PIL import Image, ImageTk
 
+from RootLocus import RootLocus
+from FrequencyDomain import FrequencyDomain
+from FreeFall import FreeFall
 from TimeDomainAnalysis import TimeDomainAnalysis
 
 
 # 定义四个不同的方法
-def test1(input1, input2):
+def timeDomainSimu(input1, input2):
     # "25"  "1 6 25"
-    rise_time, peak_time, overshoot, settling_time, dampingRatio, naturalFrequency,t_step, y_step,t_ramp, y_ramp = TimeDomainAnalysis(input1, input2).timeDomainAnalysis()
+    rise_time, peak_time, overshoot, settling_time, dampingRatio, naturalFrequency = TimeDomainAnalysis(input1, input2).timeDomainAnalysis()
 
     output1 = f"上升时间: {rise_time:.5f} 秒" if not np.isnan(rise_time) else "上升时间: 未找到"
     output2 = f"峰值时间: {peak_time:.5f} 秒"
@@ -18,25 +21,30 @@ def test1(input1, input2):
     output4 = f"调节时间（±2%范围内）: {settling_time:.5f} 秒" if not np.any(settling_time) else "调节时间: 未找到"
     output5 = f"阻尼比: {dampingRatio:.2f}"
     output6 = f"自然振荡频率: {naturalFrequency:.2f}"
-    return output1, output2, output3, output4, output5, output6, t_step, y_step,t_ramp, y_ramp
+    return output1, output2, output3, output4, output5, output6
 
-def test2(input1, input2, input3):
-    output1 = f"test2输出1: {input1} + {input2} + {input3}"
-    output2 = f"test2输出2: {input1} * {input2} * {input3}"
-    output3 = f"test2输出3: {input1} - {input2} - {input3}"
-    return output1, output2, output3
+def rootLocusSimu(input1, input2, input3):
+    # "1", "1 3 2 0", 10
+    RootLocus(input1, input2, input3).rootLocus()
 
-def test3(input1, input2):
-    output1 = f"test3输出1: {input1} * 2"
-    output2 = f"test3输出2: {input2} * 3"
-    output3 = f"test3输出3: {input1} + {input2} * 4"
-    return output1, output2, output3
+def frequencyDomainSimu(input1, input2):
+    # "10", "1 6 5 0"
+    gm, pm, wcg, wcp = FrequencyDomain(input1, input2).frequencyDomain()
+    output1 = f"幅值裕度：", {round(gm, 2)}, "dB"
+    output2 = f"相角裕度：", {round(pm, 4)}, "度"
+    output3 = f"幅值交叉频率频率：", {round(wcg, 4)}, "rad/s"
+    output4 = f"相角原始截止频率：", {round(wcp, 4)}, "rad/s"
+    return output1, output2, output3, output4
 
-def test4(input1, input2):
+def checkSimu(input1, input2):
     output1 = f"test4输出1: {input1} ** 2"
     output2 = f"test4输出2: {input2} ** 3"
     output3 = f"test4输出3: {input1} + {input2} ** 4"
     return output1, output2, output3
+
+def freeFallSimu(input1, input2):
+    FreeFall(9.81, input1, input2).freeFall()
+
 
 # 创建通用界面模板
 def create_interface(root, method, title, input_labels, window_size):
@@ -72,8 +80,8 @@ def create_interface(root, method, title, input_labels, window_size):
         # 获取输入值
         input_values = [input_entry.get() for input_entry in inputs]
         # 调用方法并获取输出
-        if method == test1:
-            out1, out2, out3, out4, out5, out6,t_step, y_step,t_ramp, y_ramp  = method(*input_values)
+        if method == timeDomainSimu:
+            out1, out2, out3, out4, out5, out6 = method(*input_values)
             # 更新输出框内容
             output1.config(text=out1)
             output2.config(text=out2)
@@ -81,40 +89,69 @@ def create_interface(root, method, title, input_labels, window_size):
             output4.config(text=out4)
             output5.config(text=out5)
             output6.config(text=out6)
-            # 绘制plot图
-            # fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-            # axs[0].plot(t_step, y_step)
-            # axs[1].plot(t_ramp, y_ramp)
-            # canvas = FigureCanvasTkAgg(fig, master=new_window)
-            # canvas.draw()
-            # canvas.get_tk_widget().pack()
-            # 绘制第一张plot图
-            fig1 = plt.Figure(figsize=(5, 4), dpi=100)
-            ax1 = fig1.add_subplot(111)
-            ax1.plot(t_step, y_step)
-            ax1.set_xlabel('时间')
-            ax1.set_ylabel('响应')
-            ax1.set_title('单位阶跃响应')
-            canvas1 = FigureCanvasTkAgg(fig1, master=new_window)
-            canvas1.draw()
-            canvas1.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-            # 绘制第二张plot图
-            fig2 = plt.Figure(figsize=(5, 4), dpi=100)
-            ax2 = fig2.add_subplot(111)
-            ax2.plot(t_ramp, y_ramp)
-            ax2.set_xlabel('时间')
-            ax2.set_ylabel('响应')
-            ax1.set_title('单位斜坡响应')
-            canvas2 = FigureCanvasTkAgg(fig2, master=new_window)
-            canvas2.draw()
-            canvas2.get_tk_widget().pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-        elif method == test2:
+            # 读取并显示第一张plot图
+            img1 = Image.open('pic/TimeDomain/step_response.png')
+            img1 = img1.resize((550, 550))  # 调整图片大小
+            img1_tk = ImageTk.PhotoImage(img1)
+            img_label1 = tk.Label(new_window, image=img1_tk)
+            img_label1.image = img1_tk  # 避免图片被回收
+            img_label1.pack(side=tk.LEFT)
+            # 读取并显示第二张plot图
+            img2 = Image.open('pic/TimeDomain/ramp_response.png')  # 假设这是斜坡响应的图片文件名
+            img2 = img2.resize((550, 550))
+            img2_tk = ImageTk.PhotoImage(img2)
+            img_label2 = tk.Label(new_window, image=img2_tk)
+            img_label2.image = img2_tk
+            img_label2.pack(side=tk.RIGHT)
+
+        elif method == rootLocusSimu:
+            method(*input_values)
+            # 读取并显示第一张plot图
+            img1 = Image.open('pic/RootLocus/rootLocus.png')
+            img1 = img1.resize((550, 550))  # 调整图片大小
+            img1_tk = ImageTk.PhotoImage(img1)
+            img_label1 = tk.Label(new_window, image=img1_tk)
+            img_label1.image = img1_tk  # 避免图片被回收
+            img_label1.pack(side=tk.LEFT)
+            # 读取并显示第二张plot图
+            img2 = Image.open('pic/RootLocus/step_response.png')
+            img2 = img2.resize((550, 550))
+            img2_tk = ImageTk.PhotoImage(img2)
+            img_label2 = tk.Label(new_window, image=img2_tk)
+            img_label2.image = img2_tk
+            img_label2.pack(side=tk.RIGHT)
+        elif method == frequencyDomainSimu:
+            out1, out2, out3, out4 = method(*input_values)
+            # 更新输出框内容
+            output1.config(text=out1)
+            output2.config(text=out2)
+            output3.config(text=out3)
+            output4.config(text=out4)
+            # 读取并显示第一张plot图
+            img1 = Image.open('pic/FrequencyDomain/BodePlot.png')
+            img1 = img1.resize((550, 550))  # 调整图片大小
+            img1_tk = ImageTk.PhotoImage(img1)
+            img_label1 = tk.Label(new_window, image=img1_tk)
+            img_label1.image = img1_tk  # 避免图片被回收
+            img_label1.pack(side=tk.LEFT)
+            # 读取并显示第二张plot图
+            img2 = Image.open('pic/FrequencyDomain/NyquistPlot.png')
+            img2 = img2.resize((550, 550))
+            img2_tk = ImageTk.PhotoImage(img2)
+            img_label2 = tk.Label(new_window, image=img2_tk)
+            img_label2.image = img2_tk
+            img_label2.pack(side=tk.RIGHT)
+        elif method == checkSimu:
             out1, out2, out3 = method(*input_values)
-        elif method == test3:
-            out1, out2, out3 = method(*input_values)
-        elif method == test4:
-            out1, out2, out3 = method(*input_values)
+        elif method == freeFallSimu:
+            method(*input_values)
+            img1 = Image.open('pic/FreeFall/freeFall.png')
+            img1 = img1.resize((550, 550))  # 调整图片大小
+            img1_tk = ImageTk.PhotoImage(img1)
+            img_label1 = tk.Label(new_window, image=img1_tk)
+            img_label1.image = img1_tk  # 避免图片被回收
+            img_label1.pack(side=tk.LEFT)
         else:
             out1, out2, out3 = method(*input_values[:2])
 
@@ -130,10 +167,11 @@ root.geometry("800x600")
 
 # 创建四个选项按钮
 buttons = [
-    ("时域仿真设计", test1, ["输入分子:", "输入分母:"], "1000x1000", 25),
-    ("根轨迹仿真设计", test2, ["输入分子:", "输入分母:", "开环增益:"], "700x450", 25),
-    ("频域仿真设计", test3, ["输入分子:", "输入分母:"], "700x450", 25),
-    ("选项4", test4, ["输入M:", "输入N:"], "700x450", 25)
+    ("时域仿真设计", timeDomainSimu, ["输入分子:", "输入分母:"], "1200x800", 25),
+    ("根轨迹仿真设计", rootLocusSimu, ["输入分子:", "输入分母:", "开环增益:"], "1200x800", 25),
+    ("频域仿真设计", frequencyDomainSimu, ["输入分子:", "输入分母:"], "1200x800", 25),
+    ("校正仿真设计", checkSimu, ["输入M:", "输入N:"], "1200x800", 25),
+    ("重力加速度", freeFallSimu, ["最大时间:", "时间步长:"], "1200x800", 25)
 ]
 
 for title, method, input_labels, window_size, button_width in buttons:

@@ -80,26 +80,19 @@ class TimeDomainAnalysis:
         plt.figure()
 
         plt.plot(t_step, y_step)
-
         plt.xlabel('时间')
-
         plt.ylabel('响应')
-
         plt.title('单位阶跃响应')
-
-        plt.grid(True)
-
+        # plt.grid(True)
+        plt.savefig('pic/TimeDomain/step_response.png')
         plt.show()
+
         plt.plot(t_ramp, y_ramp)
-
         plt.xlabel('时间')
-
         plt.ylabel('响应')
-
-        plt.title('单位阶跃响应')
-
-        plt.grid(True)
-
+        plt.title('单位斜坡响应')
+        # plt.grid(True)
+        plt.savefig('pic/TimeDomain/ramp_response.png')
         plt.show()
 
-        return rise_time, peak_time, overshoot,settling_time,dampingRatio,naturalFrequency,t_step, y_step,t_ramp, y_ramp
+        return rise_time, peak_time, overshoot,settling_time,dampingRatio,naturalFrequency

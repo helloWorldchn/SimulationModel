@@ -47,6 +47,7 @@ class FrequencyDomain:
 
         # 调整子图间距
         plt.tight_layout()
+        plt.savefig('pic/FrequencyDomain/BodePlot.png')
         plt.show()
 
         # 绘制Nyquist图
@@ -57,6 +58,7 @@ class FrequencyDomain:
         plt.ylabel('Imaginary Part')
         plt.title('Nyquist Plot')
         # plt.legend()
+        plt.savefig('pic/FrequencyDomain/NyquistPlot.png')
         plt.show()
         # # 绘制Nyquist图
         # plt.figure()
@@ -71,3 +73,4 @@ class FrequencyDomain:
         print("相角裕度：", round(pm, 4), "度")
         print("幅值交叉频率频率：", round(wcg, 4), "rad/s")
         print("相角原始截止频率：", round(wcp, 4), "rad/s")
+        return gm, pm, wcg, wcp

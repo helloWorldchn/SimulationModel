@@ -47,10 +47,16 @@ class TimeDomainAnalysis:
         overshoot = ((peak_value - final_value) / final_value) * 100 if peak_value > final_value else 0
 
         # 调节时间（达到并保持在最终值±2%范围内的时间）
-        tolerance = 0.02 * final_value
-        settling_time_index = np.where(np.abs(y_step - final_value) <= tolerance)
+        tolerance = 0.01 * final_value
+        settling_time_index = np.where(np.abs(y_step - final_value) <= tolerance)[0]
+        # 确保响应在±2%范围内保持稳定
         if len(settling_time_index) > 0:
-            settling_time = t_step[settling_time_index]
+            for idx in settling_time_index:
+                if np.all(np.abs(y_step[idx:] - final_value) <= tolerance):
+                    settling_time = t_step[idx]
+                    break
+            else:
+                settling_time = np.nan
         else:
             settling_time = np.nan
 
@@ -58,7 +64,7 @@ class TimeDomainAnalysis:
         print(f"上升时间: {rise_time:.5f} 秒" if not np.isnan(rise_time) else "上升时间: 未找到")
         print(f"峰值时间: {peak_time:.5f} 秒")
         print(f"超调量: {overshoot:.5f}%")
-        print(f"调节时间（±2%范围内）: {settling_time:.5f} 秒" if not np.any(settling_time) else "调节时间: 未找到")
+        print(f"调节时间（±2%范围内）: {settling_time:.5f} 秒" if not np.isnan(settling_time) else "调节时间: 未找到")
 
         # 计算单位斜坡响应
         # 由于control库没有ramp_response函数，我们可以使用forced_response函数
@@ -95,4 +101,4 @@ class TimeDomainAnalysis:
         plt.savefig('pic/TimeDomain/ramp_response.png')
         plt.show()
 
-        return rise_time, peak_time, overshoot,settling_time,dampingRatio,naturalFrequency
+        return rise_time, peak_time, overshoot, settling_time, dampingRatio, naturalFrequency

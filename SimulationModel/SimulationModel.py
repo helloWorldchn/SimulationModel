@@ -4,7 +4,7 @@ from FrequencyDomain import FrequencyDomain
 from TimeDomainAnalysis import TimeDomainAnalysis
 
 if __name__ == '__main__':
-    flag = 1
+    flag = 3
     if flag == 0:
         FreeFall(g=9.81, t_max=10, dt=0.1).freeFall()
     elif flag == 1:

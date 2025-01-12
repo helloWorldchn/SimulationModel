@@ -74,3 +74,7 @@ class FrequencyDomain:
         print("幅值交叉频率频率：", round(wcg, 4), "rad/s")
         print("相角原始截止频率：", round(wcp, 4), "rad/s")
         return gm, pm, wcg, wcp
+
+
+if __name__ == '__main__':
+    gm, pm, wcg, wcp = FrequencyDomain("10", "1 6 5 0").frequencyDomain()

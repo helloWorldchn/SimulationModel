@@ -102,3 +102,8 @@ class TimeDomainAnalysis:
         plt.show()
 
         return rise_time, peak_time, overshoot, settling_time, dampingRatio, naturalFrequency
+
+
+if __name__ == '__main__':
+    rise_time, peak_time, overshoot, settling_time, dampingRatio, naturalFrequency = TimeDomainAnalysis("25",
+                                                                                                        "1 6 25").timeDomainAnalysis()

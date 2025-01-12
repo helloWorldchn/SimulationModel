@@ -1,8 +1,3 @@
-import math
-
-import control as ctrl
-import matplotlib.pyplot as plt
-import numpy as np
 import control as ctrl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,6 +9,12 @@ plt.rcParams['axes.unicode_minus'] = False
 # 定义传递函数
 num = [100]  # 分子系数
 den = [0.001, 0.11, 1, 0]  # 分母系数
+# 设置目标相角裕度
+desired_pm = 20  # 目标相角裕度
+
+# num = [300]  # 分子系数
+# den = [0.2, 1, 0]  # 分母系数
+# desired_pm = 40  # 目标相角裕度
 sys = ctrl.TransferFunction(num, den)
 
 # 设置频率范围
@@ -55,16 +56,15 @@ elif pm < 10:
 else:
     safety_margin = 5  # 默认安全裕度
 
-# 设置目标相角裕度
-desired_pm = 20  # 目标相角裕度
 phase_margin_needed = desired_pm - pm + safety_margin  # 需要增加的相角
 
 # 根据系统参数变化调整安全裕度
 # 设计超前校正器
 # 计算超前校正器的参数
 alpha_lead = (1 + np.sin(np.radians(phase_margin_needed))) / (1 - np.sin(np.radians(phase_margin_needed)))
-# 计算参数 T
+# 计算目标频率 omega_c
 omega_c = wcp * 1.2
+# 计算参数 T
 T_lead = 1 / (omega_c * np.sqrt(alpha_lead))
 # 计算超前校正器的传递函数
 num_lead = [alpha_lead * T_lead, 1]
@@ -72,22 +72,12 @@ den_lead = [T_lead, 1]
 lead_compensator = ctrl.TransferFunction(num_lead, den_lead)
 sys_lead = series(sys, lead_compensator)
 
-# 计算目标频率 omega_c
-# 找到未校正系统在增益为 -20*log10(alpha) dB 处的频率
-target_gain_dB = -20 * np.log10(alpha_lead)
-gain_crossover_idx = np.argmin(np.abs(mag - 10 ** (target_gain_dB / 20)))
-omega_c = omega[gain_crossover_idx]
-T_lead1 = 1 / (omega_c * np.sqrt(alpha_lead))
-# sys_lead = sys * lead_compensator
 # 输出结果
-print(f"未校正系统的相角裕度: {pm} 度")
-print(f"目标相角裕度: {desired_pm} 度")
-print(f"需要的相位校正量: {phase_margin_needed} 度")
-print(f"参数 alpha: {alpha_lead}")
-print(f"参数 T: {T_lead}")
-print(f"超前校正器的传递函数: {sys}")
-print(f"校正后的系统传递函数: {sys_lead}")
-print(f"校正后的系统传递函数: {lead_compensator}")
+# print(f"参数 alpha: {alpha_lead}")
+# print(f"参数 T: {T_lead}")
+# print(f"超前校正器的传递函数: {sys}")
+# print(f"校正后的系统传递函数: {sys_lead}")
+# print(f"校正后的系统传递函数: {lead_compensator}")
 
 # 获取超前校正后的Bode图数据
 mag_lead, phase_lead, _ = ctrl.bode(sys_lead, omega, dB=True, Hz=False, deg=True, plot=False)
@@ -132,10 +122,13 @@ z = 1 / (T * alpha)
 p = 1 / T
 
 # 创建滞后校验器的传递函数
-lag_comp = ctrl.TransferFunction([1, z], [1, p])
+num_lag = [1, z]
+den_lag = [1, p]
+# 创建滞后校验器的传递函数
+lag_compensator = ctrl.TransferFunction(num_lag, den_lag)
 
 # 校验后的系统
-sys_lag = sys * lag_comp
+sys_lag = sys * lag_compensator
 
 # 获取校验后系统的Bode图数据
 mag_lag, phase_lag, _ = ctrl.bode(sys_lag, omega, dB=True, Hz=False, deg=True, plot=False)

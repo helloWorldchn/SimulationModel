@@ -55,3 +55,7 @@ class RootLocus:
         plt.title('开环单位阶跃响应')
         plt.savefig('pic/RootLocus/step_response.png')
         plt.show()
+
+
+if __name__ == '__main__':
+    RootLocus("1", "1 3 2 0", 10).rootLocus()

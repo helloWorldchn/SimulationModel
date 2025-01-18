@@ -7,6 +7,7 @@ from RootLocus import RootLocus
 from FrequencyDomain import FrequencyDomain
 from FreeFall import FreeFall
 from Compensation import Compensation
+from MassSpringDamper import MassSpringDamper
 from TimeDomainAnalysis import TimeDomainAnalysis
 from DCMotor import DCMotor
 
@@ -67,6 +68,11 @@ def compensationSimu(input1, input2, input3, compensation_type='lead'):
 
 def freeFallSimu(input1, input2):
     FreeFall(9.81, input1, input2).freeFall()
+    return []
+
+
+def massSpringDamper(input1, input2, input3):
+    MassSpringDamper(input1, input2, input3).massSpringDamper()
     return []
 
 
@@ -262,12 +268,24 @@ def create_interface(root, method, title, input_labels, input_widths, window_siz
             for output in outputs:
                 output_label = tk.Label(output_frame, text=output)
                 output_label.pack()
-            img1 = Image.open('pic/FreeFall/freeFall.png')
-            img1 = img1.resize((500, 400))  # 调整图片大小
-            img1_tk = ImageTk.PhotoImage(img1)
-            img_label1 = tk.Label(image_frame, image=img1_tk)
-            img_label1.image = img1_tk  # 避免图片被回收
-            img_label1.pack(side=tk.LEFT)
+            img = Image.open('pic/FreeFall/freeFall.png')
+            img = img.resize((500, 400))  # 调整图片大小
+            img_tk = ImageTk.PhotoImage(img)
+            img_label = tk.Label(image_frame, image=img_tk)
+            img_label.image = img_tk  # 避免图片被回收
+            img_label.pack(side=tk.LEFT)
+        elif method == massSpringDamper:
+            outputs = method(*input_values)
+            # 动态创建输出框并更新内容
+            for output in outputs:
+                output_label = tk.Label(output_frame, text=output)
+                output_label.pack()
+            img = Image.open('pic/MassSpringDamper/massSpringDamper.png')
+            img = img.resize((500, 400))  # 调整图片大小
+            img_tk = ImageTk.PhotoImage(img)
+            img_label = tk.Label(image_frame, image=img_tk)
+            img_label.image = img_tk  # 避免图片被回收
+            img_label.pack(side=tk.LEFT)
         elif method == dcMotor:
             outputs = method(*input_values)
             # 动态创建输出框并更新内容
@@ -300,6 +318,9 @@ def create_interface(root, method, title, input_labels, input_widths, window_siz
     elif method == freeFallSimu:
         button_fall = tk.Button(new_window, text="自由落体仿真设计", command=on_button_click)
         button_fall.pack()
+    elif method == massSpringDamper:
+        button_mess = tk.Button(new_window, text="质量弹簧阻尼器系统", command=on_button_click)
+        button_mess.pack()
     elif method == dcMotor:
         # 换行显示按钮
         row += 1  # 更新行号，让按钮换行显示
@@ -330,27 +351,24 @@ root.geometry("800x600")
 
 # 创建四个选项按钮
 buttons = [
-    ("时域仿真设计", timeDomainSimu, ["输入分子:", "输入分母:"], [20, 20], "1100x800", 25, 'default'),
-    ("根轨迹仿真设计", rootLocusSimu, ["输入分子:", "输入分母:", "开环增益:"], [20, 20, 20], "1100x800", 25, 'default'),
-    ("频域仿真设计", frequencyDomainSimu, ["输入分子:", "输入分母:"], [20, 20], "1100x800", 25, 'default'),
-    (
-    "校正仿真设计", compensationSimu, ["输入分子:", "输入分母:", "目标裕度:"], [20, 20, 20], "1100x800", 25, 'default'),
+    ("时域仿真设计", timeDomainSimu, ["分子:", "分母:"], [20, 20], "1100x800", 25, 'default'),
+    ("根轨迹仿真设计", rootLocusSimu, ["分子:", "分母:", "开环增益:"], [20, 20, 20], "1100x800", 25, 'default'),
+    ("频域仿真设计", frequencyDomainSimu, ["分子:", "输入分母:"], [20, 20], "1100x800", 25, 'default'),
+    ("校正仿真设计", compensationSimu, ["分子:", "分母:", "目标裕度:"], [20, 20, 20], "1100x800", 25, 'default'),
     ("自由落体仿真设计", freeFallSimu, ["最大时间:", "时间步长:"], [20, 20], "1100x800", 25, 'default'),
+    ("质量弹簧阻尼系统", massSpringDamper, ["质量:", "弹簧常数:", "阻尼系数:"], [20, 20, 20], "1100x800", 25, 'default'),
     ("直流电机仿真设计", dcMotor,
      ["电枢电阻（欧姆）:", "电枢电感（亨利）:", "电机转矩常数（N·m/A）:", "电机反电动势常数（V·s/rad）:",
-      "电机转子转动惯量（kg·m²）:",
-      "电机转子粘滞摩擦系数（N·m·s/rad）:", "比例增益P:", "积分增益I:", "微分增益D:", "仿真时间（秒）:",
-      "时间步长（秒）:", "目标转速（rad/s）:"], [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10], "1100x800", 25,
-     'grid')
+      "电机转子转动惯量（kg·m²）:", "电机转子粘滞摩擦系数（N·m·s/rad）:", "比例增益P:", "积分增益I:", "微分增益D:",
+      "仿真时间（秒）:", "时间步长（秒）:", "目标转速（rad/s）:"],
+     [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10], "1100x800", 25, 'grid')
 ]
 
 for title, method, input_labels, input_widths, window_size, button_width, layout in buttons:
     button = tk.Button(root, text=title, width=button_width,
                        command=lambda method=method, title=title, input_labels=input_labels, input_widths=input_widths,
-                                      window_size=window_size, layout=layout: create_interface(root, method, title,
-                                                                                               input_labels,
-                                                                                               input_widths,
-                                                                                               window_size, layout))
+                                      window_size=window_size, layout=layout:
+                       create_interface(root, method, title, input_labels, input_widths, window_size, layout))
     button.pack(pady=5)  # 添加垂直间距
 
 # 运行主循环

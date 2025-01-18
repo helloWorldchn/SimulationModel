@@ -8,6 +8,7 @@ from FrequencyDomain import FrequencyDomain
 from FreeFall import FreeFall
 from Compensation import Compensation
 from TimeDomainAnalysis import TimeDomainAnalysis
+from DCMotor import DCMotor
 
 
 # 定义四个不同的方法
@@ -69,20 +70,87 @@ def freeFallSimu(input1, input2):
     return []
 
 
+def dcMotor(input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11, input12):
+    DCMotor(input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11, input12).dcMotor()
+    return []
+
+
 # 创建通用界面模板
-def create_interface(root, method, title, input_labels, window_size):
+def create_interface(root, method, title, input_labels, input_widths, window_size, layout='default'):
     new_window = Toplevel(root)
     new_window.title(title)
     new_window.geometry(window_size)  # 设置窗口大小
 
     # 创建输入框
     inputs = []
-    for label_text in input_labels:
-        input_label = tk.Label(new_window, text=label_text)
-        input_label.pack()
-        input_entry = tk.Entry(new_window)
-        input_entry.pack()
-        inputs.append(input_entry)
+    if layout == 'grid':
+        # 使用Grid布局管理器
+        row = 0
+        col = 0
+
+        # 第一行：4个输入框，前缀为“直流电机调速模型参数”
+        tk.Label(new_window, text="直流电机调速模型参数").grid(row=row, column=0, columnspan=8, sticky='w', padx=5,
+                                                               pady=5)
+        row += 1
+        for i in range(3):
+            label_text = input_labels[i]
+            input_label = tk.Label(new_window, text=label_text)
+            input_label.grid(row=row, column=col, sticky='w', padx=5, pady=5)
+            input_entry = tk.Entry(new_window, width=input_widths[i])
+            input_entry.grid(row=row, column=col + 1, padx=5, pady=5)
+            inputs.append(input_entry)
+            col += 2
+        row += 1
+        col = 0
+
+        # 第二行：3个输入框，前缀为空格对齐
+        tk.Label(new_window, text="   ").grid(row=row, column=0, columnspan=6, sticky='w', padx=5, pady=5)
+        for i in range(3, 6):
+            label_text = input_labels[i]
+            input_label = tk.Label(new_window, text=label_text, anchor='e')
+            input_label.grid(row=row, column=col, sticky='w', padx=5, pady=5)
+            input_entry = tk.Entry(new_window, width=input_widths[i])
+            input_entry.grid(row=row, column=col + 1, padx=5, pady=5)
+            inputs.append(input_entry)
+            col += 2
+        row += 1
+        col = 0
+
+        # 第三行：4个输入框，前缀为“PID补偿器参数”
+        tk.Label(new_window, text="PID补偿器参数").grid(row=row, column=0, columnspan=8, sticky='w', padx=5, pady=5)
+        row += 1
+        pid_values = [1, 0.8, 0.01]  # 预输入值
+        for i in range(6, 9):
+            label_text = input_labels[i]
+            input_label = tk.Label(new_window, text=label_text, anchor='e')
+            input_label.grid(row=row, column=col, sticky='w', padx=5, pady=5)
+            input_entry = tk.Entry(new_window, width=input_widths[i])
+            input_entry.grid(row=row, column=col + 1, padx=5, pady=5)
+            input_entry.insert(0, pid_values[i - 6])  # 插入预输入值
+            inputs.append(input_entry)
+            col += 2
+        row += 1
+        col = 0
+
+        # 第四行：3个输入框，前缀为“定义仿真参数”
+        tk.Label(new_window, text="定义仿真参数").grid(row=row, column=0, columnspan=6, sticky='w', padx=5, pady=5)
+        row += 1
+        for i in range(9, 12):
+            label_text = input_labels[i]
+            input_label = tk.Label(new_window, text=label_text, anchor='e')
+            input_label.grid(row=row, column=col, sticky='w', padx=5, pady=5)
+            input_entry = tk.Entry(new_window, width=input_widths[i])
+            input_entry.grid(row=row, column=col + 1, padx=5, pady=5)
+            inputs.append(input_entry)
+            col += 2
+    elif layout == 'default':
+        # 使用Pack布局管理器
+        for label_text, width in zip(input_labels, input_widths):
+            input_label = tk.Label(new_window, text=label_text)
+            input_label.pack()
+            input_entry = tk.Entry(new_window, width=width)
+            input_entry.pack()
+            inputs.append(input_entry)
 
     # 定义按钮点击事件
     def on_button_click(compensation_type=None):
@@ -200,6 +268,19 @@ def create_interface(root, method, title, input_labels, window_size):
             img_label1 = tk.Label(image_frame, image=img1_tk)
             img_label1.image = img1_tk  # 避免图片被回收
             img_label1.pack(side=tk.LEFT)
+        elif method == dcMotor:
+            outputs = method(*input_values)
+            # 动态创建输出框并更新内容
+            for output in outputs:
+                output_label = tk.Label(output_frame, text=output)
+                output_label.pack()
+            # 读取并显示第一张plot图
+            img = Image.open('pic/DCMotor/dcMotor.png')
+            img = img.resize((500, 400))  # 调整图片大小
+            img1_tk = ImageTk.PhotoImage(img)
+            img_label = tk.Label(image_frame, image=img1_tk)
+            img_label.image = img1_tk  # 避免图片被回收
+            img_label.pack()
 
     # 创建按钮
     if method == timeDomainSimu:
@@ -219,14 +300,27 @@ def create_interface(root, method, title, input_labels, window_size):
     elif method == freeFallSimu:
         button_fall = tk.Button(new_window, text="自由落体仿真设计", command=on_button_click)
         button_fall.pack()
+    elif method == dcMotor:
+        # 换行显示按钮
+        row += 1  # 更新行号，让按钮换行显示
+        col = 0  # 重置列号，让按钮从新的一行的开始位置显示
+        button_dc = tk.Button(new_window, text="直流电机仿真设计", command=on_button_click)
+        button_dc.grid(row=row, column=col, padx=5, pady=5, columnspan=8)
 
     # 创建输出框
-    # 创建输出框容器
-    output_frame = tk.Frame(new_window)
-    output_frame.pack(pady=10)
-    # 创建图片容器
-    image_frame = tk.Frame(new_window)
-    image_frame.pack(pady=10)
+    if method == dcMotor:
+        # 创建输出框容器
+        output_frame = tk.Frame(new_window)
+        output_frame.grid(pady=10)
+        # 创建图片容器
+        image_frame = tk.Frame(new_window)
+        image_frame.grid(pady=10, columnspan=8)
+    else:
+        output_frame = tk.Frame(new_window)
+        output_frame.pack(pady=10)
+        # 创建图片容器
+        image_frame = tk.Frame(new_window)
+        image_frame.pack(pady=10)
 
 
 # 创建主窗口
@@ -236,18 +330,27 @@ root.geometry("800x600")
 
 # 创建四个选项按钮
 buttons = [
-    ("时域仿真设计", timeDomainSimu, ["输入分子:", "输入分母:"], "1100x800", 25),
-    ("根轨迹仿真设计", rootLocusSimu, ["输入分子:", "输入分母:", "开环增益:"], "1100x800", 25),
-    ("频域仿真设计", frequencyDomainSimu, ["输入分子:", "输入分母:"], "1100x800", 25),
-    ("校正仿真设计", compensationSimu, ["输入分子:", "输入分母:", "目标裕度:"], "1100x800", 25),
-    ("自由落体仿真设计", freeFallSimu, ["最大时间:", "时间步长:"], "1200x800", 25)
+    ("时域仿真设计", timeDomainSimu, ["输入分子:", "输入分母:"], [20, 20], "1100x800", 25, 'default'),
+    ("根轨迹仿真设计", rootLocusSimu, ["输入分子:", "输入分母:", "开环增益:"], [20, 20, 20], "1100x800", 25, 'default'),
+    ("频域仿真设计", frequencyDomainSimu, ["输入分子:", "输入分母:"], [20, 20], "1100x800", 25, 'default'),
+    (
+    "校正仿真设计", compensationSimu, ["输入分子:", "输入分母:", "目标裕度:"], [20, 20, 20], "1100x800", 25, 'default'),
+    ("自由落体仿真设计", freeFallSimu, ["最大时间:", "时间步长:"], [20, 20], "1100x800", 25, 'default'),
+    ("直流电机仿真设计", dcMotor,
+     ["电枢电阻（欧姆）:", "电枢电感（亨利）:", "电机转矩常数（N·m/A）:", "电机反电动势常数（V·s/rad）:",
+      "电机转子转动惯量（kg·m²）:",
+      "电机转子粘滞摩擦系数（N·m·s/rad）:", "比例增益P:", "积分增益I:", "微分增益D:", "仿真时间（秒）:",
+      "时间步长（秒）:", "目标转速（rad/s）:"], [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10], "1100x800", 25,
+     'grid')
 ]
 
-for title, method, input_labels, window_size, button_width in buttons:
+for title, method, input_labels, input_widths, window_size, button_width, layout in buttons:
     button = tk.Button(root, text=title, width=button_width,
-                       command=lambda method=method, title=title, input_labels=input_labels,
-                                      window_size=window_size: create_interface(root, method, title, input_labels,
-                                                                                window_size))
+                       command=lambda method=method, title=title, input_labels=input_labels, input_widths=input_widths,
+                                      window_size=window_size, layout=layout: create_interface(root, method, title,
+                                                                                               input_labels,
+                                                                                               input_widths,
+                                                                                               window_size, layout))
     button.pack(pady=5)  # 添加垂直间距
 
 # 运行主循环

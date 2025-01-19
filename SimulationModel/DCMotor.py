@@ -6,8 +6,23 @@ class DCMotor:
     plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
     plt.rcParams['axes.unicode_minus'] = False
 
-    def __init__(self, R=1.0, L=0.1, Kt=0.5, Ke=0.5, J=0.01, B=0.01, Kp=1, Ki=0.8, Kd=0.01, t_max=10, dt=0.1,
+    def __init__(self, R=1.0, L=0.1, Kt=0.5, Ke=0.5, J=0.01, B=0.01, Kp=1, Ki=0.8, Kd=0.01, t_max=10, dt=0.01,
                  omega_ref=2000) -> None:
+        """
+        直流电机仿真系统
+        :param R: 电枢电阻（欧姆）
+        :param L: 电枢电感（亨利）
+        :param Kt: 电机转矩常数（N·m/A）
+        :param Ke: 电机反电动势常数（V·s/rad）
+        :param J: 电机转子转动惯量（kg·m²）
+        :param B: 电机转子粘滞摩擦系数（N·m·s/rad）
+        :param Kp:  比例增益
+        :param Ki: 积分增益
+        :param Kd: 微分增益
+        :param t_max: 仿真时间（秒）
+        :param dt: 时间步长（秒）
+        :param omega_ref: 目标转速（rad/s）
+        """
         # 定义直流电机调速模型参数
         self.R = float(R)  # 电枢电阻（欧姆）
         self.L = float(L)  # 电枢电感（亨利）
@@ -23,7 +38,7 @@ class DCMotor:
         self.t_max = float(t_max)  # 仿真时间（秒）
         self.dt = float(dt)  # 时间步长（秒）
         # 定义目标转速（这里以恒定目标转速为例）
-        self.omega_ref = float(omega_ref)  # 标转速（rad/s）
+        self.omega_ref = float(omega_ref)  # 目标转速（rad/s）
 
     def dcMotor(self):
         # 定义直流电机调速模型参数
@@ -106,4 +121,4 @@ class DCMotor:
 
 
 if __name__ == '__main__':
-    DCMotor(R=1.0, L=0.1, Kt=0.5, Ke=0.5, J=0.01, B=0.01, Kp=1, Ki=0.8, Kd=0.01, t_max=10, dt=0.1, omega_ref=2000).dcMotor()
+    DCMotor(R=1.0, L=0.1, Kt=0.5, Ke=0.5, J=0.01, B=0.01, Kp=1, Ki=0.8, Kd=0.01, t_max=10, dt=0.01, omega_ref=2000).dcMotor()

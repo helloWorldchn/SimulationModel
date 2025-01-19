@@ -8,6 +8,12 @@ class MassSpringDamper:
     plt.rcParams['axes.unicode_minus'] = False
 
     def __init__(self, m=1.0, k=2.0, c=1) -> None:
+        """
+        弹簧-质量-阻尼系统
+        :param m: 质量
+        :param k: 弹簧常数
+        :param c: 阻尼系数
+        """
         # 定义系统参数
         self.m = float(m)  # 质量
         self.k = float(k)  # 弹簧常数

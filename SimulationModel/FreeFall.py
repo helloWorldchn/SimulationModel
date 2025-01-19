@@ -6,6 +6,12 @@ class FreeFall:
     plt.rcParams["font.sans-serif"] = ["SimHei"]
 
     def __init__(self, g=9.81, t_max=10, dt=0.1) -> None:
+        """
+        自由落体运动仿真
+        :param g: 重力加速度 (m/s^2)
+        :param t_max: 最大时间 (s)
+        :param dt: 时间步长 (s)
+        """
         self.g = g  # 重力加速度 (m/s^2)
         self.t_max = t_max  # 最大时间 (s)
         self.dt = dt  # 时间步长 (s)

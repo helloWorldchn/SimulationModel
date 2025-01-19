@@ -8,6 +8,7 @@ from FrequencyDomain import FrequencyDomain
 from FreeFall import FreeFall
 from Compensation import Compensation
 from MassSpringDamper import MassSpringDamper
+from OneInvertedPendulum import OneInvertedPendulum
 from TimeDomainAnalysis import TimeDomainAnalysis
 from DCMotor import DCMotor
 
@@ -66,18 +67,28 @@ def compensationSimu(input1, input2, input3, compensation_type='lead'):
         return [output1, output2, output3, output4, output5, output6]
 
 
-def freeFallSimu(input1, input2):
-    FreeFall(9.81, input1, input2).freeFall()
+def freeFallSimu(input1, input2, input3):
+    # "9.81" "20" "0.01"
+    FreeFall(input1, input2, input3).freeFall()
     return []
 
 
 def massSpringDamper(input1, input2, input3):
+    # "1.0" "2.0" "1"
     MassSpringDamper(input1, input2, input3).massSpringDamper()
     return []
 
 
 def dcMotor(input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11, input12):
+    # "1.0" "0.1" "0.5" "0.5" "0.01" "0.01"  "1" "0.8" "0.01" "10" "0.01" "2000"
     DCMotor(input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11, input12).dcMotor()
+    return []
+
+
+def oneInvertedPendulum(input1, input2, input3, input4, input5, input6, input7, input8, input9, input10):
+    # "1.5" "0.25" "0.24" "0.1" "9.81" "100" "10" "10" "60" "0.01"
+    OneInvertedPendulum(input1, input2, input3, input4, input5, input6, input7, input8, input9,
+                        input10).oneInvertedPendulum()
     return []
 
 
@@ -89,7 +100,7 @@ def create_interface(root, method, title, input_labels, input_widths, window_siz
 
     # 创建输入框
     inputs = []
-    if layout == 'grid':
+    if layout == 'grid_DC':
         # 使用Grid布局管理器
         row = 0
         col = 0
@@ -142,6 +153,67 @@ def create_interface(root, method, title, input_labels, input_widths, window_siz
         tk.Label(new_window, text="定义仿真参数").grid(row=row, column=0, columnspan=6, sticky='w', padx=5, pady=5)
         row += 1
         for i in range(9, 12):
+            label_text = input_labels[i]
+            input_label = tk.Label(new_window, text=label_text, anchor='e')
+            input_label.grid(row=row, column=col, sticky='w', padx=5, pady=5)
+            input_entry = tk.Entry(new_window, width=input_widths[i])
+            input_entry.grid(row=row, column=col + 1, padx=5, pady=5)
+            inputs.append(input_entry)
+            col += 2
+
+    elif layout == 'grid_IP':
+        # 使用Grid布局管理器
+        row = 0
+        col = 0
+
+        # 第一行：3个输入框，前缀为“一级倒立摆模型参数”
+        tk.Label(new_window, text="一级倒立摆模型参数").grid(row=row, column=0, columnspan=8, sticky='w', padx=5,
+                                                             pady=5)
+        row += 1
+        for i in range(3):
+            label_text = input_labels[i]
+            input_label = tk.Label(new_window, text=label_text)
+            input_label.grid(row=row, column=col, sticky='w', padx=5, pady=5)
+            input_entry = tk.Entry(new_window, width=input_widths[i])
+            input_entry.grid(row=row, column=col + 1, padx=5, pady=5)
+            inputs.append(input_entry)
+            col += 2
+        row += 1
+        col = 0
+
+        # 第二行：2个输入框，前缀为空格对齐
+        tk.Label(new_window, text="   ").grid(row=row, column=0, columnspan=6, sticky='w', padx=5, pady=5)
+        for i in range(3, 5):
+            label_text = input_labels[i]
+            input_label = tk.Label(new_window, text=label_text, anchor='e')
+            input_label.grid(row=row, column=col, sticky='w', padx=5, pady=5)
+            input_entry = tk.Entry(new_window, width=input_widths[i])
+            input_entry.grid(row=row, column=col + 1, padx=5, pady=5)
+            inputs.append(input_entry)
+            col += 2
+        row += 1
+        col = 0
+
+        # 第三行：4个输入框，前缀为“PID补偿器参数”
+        tk.Label(new_window, text="PID补偿器参数").grid(row=row, column=0, columnspan=8, sticky='w', padx=5, pady=5)
+        row += 1
+        pid_values = [100, 10, 10]  # 预输入值
+        for i in range(5, 8):
+            label_text = input_labels[i]
+            input_label = tk.Label(new_window, text=label_text, anchor='e')
+            input_label.grid(row=row, column=col, sticky='w', padx=5, pady=5)
+            input_entry = tk.Entry(new_window, width=input_widths[i])
+            input_entry.grid(row=row, column=col + 1, padx=5, pady=5)
+            input_entry.insert(0, pid_values[i - 5])  # 插入预输入值
+            inputs.append(input_entry)
+            col += 2
+        row += 1
+        col = 0
+
+        # 第四行：3个输入框，前缀为“定义仿真参数”
+        tk.Label(new_window, text="定义仿真参数").grid(row=row, column=0, columnspan=6, sticky='w', padx=5, pady=5)
+        row += 1
+        for i in range(8, 10):
             label_text = input_labels[i]
             input_label = tk.Label(new_window, text=label_text, anchor='e')
             input_label.grid(row=row, column=col, sticky='w', padx=5, pady=5)
@@ -299,6 +371,19 @@ def create_interface(root, method, title, input_labels, input_widths, window_siz
             img_label = tk.Label(image_frame, image=img1_tk)
             img_label.image = img1_tk  # 避免图片被回收
             img_label.pack()
+        elif method == oneInvertedPendulum:
+            outputs = method(*input_values)
+            # 动态创建输出框并更新内容
+            for output in outputs:
+                output_label = tk.Label(output_frame, text=output)
+                output_label.pack()
+            # 读取并显示第一张plot图
+            img = Image.open('pic/OneInvertedPendulum/invertedPendulum.png')
+            img = img.resize((500, 400))  # 调整图片大小
+            img1_tk = ImageTk.PhotoImage(img)
+            img_label = tk.Label(image_frame, image=img1_tk)
+            img_label.image = img1_tk  # 避免图片被回收
+            img_label.pack()
 
     # 创建按钮
     if method == timeDomainSimu:
@@ -327,9 +412,22 @@ def create_interface(root, method, title, input_labels, input_widths, window_siz
         col = 0  # 重置列号，让按钮从新的一行的开始位置显示
         button_dc = tk.Button(new_window, text="直流电机仿真设计", command=on_button_click)
         button_dc.grid(row=row, column=col, padx=5, pady=5, columnspan=8)
+    elif method == oneInvertedPendulum:
+        # 换行显示按钮
+        row += 1  # 更新行号，让按钮换行显示
+        col = 0  # 重置列号，让按钮从新的一行的开始位置显示
+        button_ip = tk.Button(new_window, text="一级倒立摆仿真设计", command=on_button_click)
+        button_ip.grid(row=row, column=col, padx=5, pady=5, columnspan=8)
 
     # 创建输出框
     if method == dcMotor:
+        # 创建输出框容器
+        output_frame = tk.Frame(new_window)
+        output_frame.grid(pady=10)
+        # 创建图片容器
+        image_frame = tk.Frame(new_window)
+        image_frame.grid(pady=10, columnspan=8)
+    elif method == oneInvertedPendulum:
         # 创建输出框容器
         output_frame = tk.Frame(new_window)
         output_frame.grid(pady=10)
@@ -355,13 +453,17 @@ buttons = [
     ("根轨迹仿真设计", rootLocusSimu, ["分子:", "分母:", "开环增益:"], [20, 20, 20], "1100x800", 25, 'default'),
     ("频域仿真设计", frequencyDomainSimu, ["分子:", "输入分母:"], [20, 20], "1100x800", 25, 'default'),
     ("校正仿真设计", compensationSimu, ["分子:", "分母:", "目标裕度:"], [20, 20, 20], "1100x800", 25, 'default'),
-    ("自由落体仿真设计", freeFallSimu, ["最大时间:", "时间步长:"], [20, 20], "1100x800", 25, 'default'),
+    ("自由落体仿真设计", freeFallSimu, ["重力加速度", "最大时间:", "时间步长:"], [20, 20, 20], "1100x800", 25, 'default'),
     ("质量弹簧阻尼系统", massSpringDamper, ["质量:", "弹簧常数:", "阻尼系数:"], [20, 20, 20], "1100x800", 25, 'default'),
     ("直流电机仿真设计", dcMotor,
      ["电枢电阻（欧姆）:", "电枢电感（亨利）:", "电机转矩常数（N·m/A）:", "电机反电动势常数（V·s/rad）:",
       "电机转子转动惯量（kg·m²）:", "电机转子粘滞摩擦系数（N·m·s/rad）:", "比例增益P:", "积分增益I:", "微分增益D:",
       "仿真时间（秒）:", "时间步长（秒）:", "目标转速（rad/s）:"],
-     [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10], "1100x800", 25, 'grid')
+     [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10], "1100x800", 25, 'grid_DC'),
+    ("一级倒立摆仿真设计", oneInvertedPendulum,
+     ["小车质量（kg）:", "摆杆质量（kg）:", "摆杆转动轴到质心的距离（m）:", "摩擦系数:", "重力加速度（m/s²）:", "比例增益P:",
+      "积分增益I:", "微分增益D:", "仿真时间（秒）:", "时间步长（秒）:"],
+     [10, 10, 10, 10, 10, 10, 10, 10, 10, 10], "1100x800", 25, 'grid_IP')
 ]
 
 for title, method, input_labels, input_widths, window_size, button_width, layout in buttons:

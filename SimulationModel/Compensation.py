@@ -248,10 +248,10 @@ class Compensation:
         ax2.set_xlabel('Frequency (rad/s)')
         ax2.set_ylabel('Phase (degrees)')
         ax2.set_title('Bode Plot - Phase (Lag Compensated System)')
-        plt.savefig('pic/Compensation/lag/LagCompensated.png')
 
         # 调整子图间距
         plt.tight_layout()
+        plt.savefig('pic/Compensation/lag/LagCompensated.png')
         plt.show()
 
         # 计算校验后系统的幅值裕度和相角裕度

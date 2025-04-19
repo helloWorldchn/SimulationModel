@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import Toplevel
+from tkinter import Toplevel, ttk
 import numpy as np
 from PIL import Image, ImageTk
 
@@ -91,90 +91,29 @@ def oneInvertedPendulum(input1, input2, input3, input4, input5, input6, input7, 
                         input10).oneInvertedPendulum()
     return []
 
-# 定义不同模型的公式图片路径配置
-MODEL_MEDIA_CONFIG = {
-    timeDomainSimu: [
-        {
-            'type': 'image',
-            'desc': '时域响应公式',
-            'path': 'describe/TimeDomainFormula.png',
-            'width': 100,
-            'height': 50,
-            'text': '二阶系统标准形式：\nH(s) = ωₙ² / (s² + 2ζωₙs + ωₙ²)'
-        },
-        {
-            'type': 'image',
-            'desc': '阶跃响应示意图',
-            'path': 'describe/TimeDomainDescribe.png',
-            'width': 400,
-            'height': 250
-        },
-        {
-            'type': 'text',
-            'content': '1. 重力加速度g：9.81 m/s²\n2. 初始高度h₀：可自定义\n3. 空气阻力系数：暂未考虑',
-            'style': {
-                'font': ('楷体', 11),
-                'fg': '#34495e',
-                'justify': 'left',
-                'pady': 5
-            }
-        }
-    ],
-    rootLocusSimu: [],
-    frequencyDomainSimu: [],
-    compensationSimu: [],
-    freeFallSimu: [
-        {
-            'type': 'image',
-            'desc': '自由落体运动公式',
-            'path': 'describe/TimeDomainFormula.png',
-            'width': 450,
-            'height': 50,
-            'text': '公式说明：h(t) = ½gt² + v₀t + h₀'
-        },
-        {
-            'type': 'image',
-            'desc': '自由落体示意图',
-            'path': 'describe/TimeDomainFormula.png',
-            'width': 300,
-            'height': 250,
-            'text': '示意图说明：展示物体自由下落过程'
-        },
-        {
-            'type': 'text',
-            'content': '1. 重力加速度g：9.81 m/s²\n2. 初始高度h₀：可自定义\n3. 空气阻力系数：暂未考虑',
-            'style': {
-                'font': ('楷体', 11),
-                'fg': '#34495e',
-                'justify': 'left',
-                'pady': 5
-            }
-        }
-    ],
-    massSpringDamper: [
-    ],
-    dcMotor: [
-    ],
-    oneInvertedPendulum: [
-    ]
-}
+
 # 创建通用界面模板
 def create_interface(root, method, title, input_labels, input_widths, window_size, layout='default'):
     new_window = Toplevel(root)
     new_window.title(title)
-    # 注释掉原来的窗口大小设置
-    # new_window.geometry(window_size)   # 设置窗口大小
-    # 设置窗口全屏显示
-    new_window.attributes('-fullscreen', True)
-    # 创建按钮框架，用于放置退出和回退按钮
-    button_frame = tk.Frame(new_window)
-    button_frame.pack(anchor='ne', padx=10, pady=10)
-    # 创建回退按钮
-    back_button = tk.Button(button_frame, text="返回主菜单", command=lambda: [new_window.destroy()])
-    back_button.pack(side=tk.LEFT, padx=5)
-    # 创建退出按钮
-    exit_button = tk.Button(button_frame, text="退出", command=new_window.destroy)
-    exit_button.pack(side=tk.LEFT, padx=5)
+    new_window.geometry(window_size)  # 设置窗口大小
+
+    # 主容器分为上下两部分
+    main_paned = ttk.PanedWindow(new_window, orient=tk.VERTICAL)
+    main_paned.pack(fill=tk.BOTH, expand=True)
+
+    # ========== 上1/3区域（输入+说明） ==========
+    top_frame = ttk.Frame(main_paned, height=int(new_window.winfo_screenheight()/3))
+    main_paned.add(top_frame, weight=1)
+
+    # 左侧输入区域
+    input_frame = ttk.Frame(top_frame, width=300)
+    input_frame.pack(side=tk.LEFT, fill=tk.BOTH, padx=10, pady=10)
+
+    # 右侧说明区域
+    desc_frame = ttk.Frame(top_frame)
+    desc_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
+
     # 创建输入框
     inputs = []
     if layout == 'grid_DC':
@@ -307,6 +246,96 @@ def create_interface(root, method, title, input_labels, input_widths, window_siz
             input_entry.pack()
             inputs.append(input_entry)
 
+    # ========== 下2/3区域（输出+图片） ==========
+    bottom_frame = ttk.Frame(main_paned)
+    main_paned.add(bottom_frame, weight=2)
+
+    # 输出容器
+    output_frame = ttk.Frame(bottom_frame)
+    output_frame.pack(side=tk.TOP, fill=tk.X, padx=10, pady=5)
+
+    # 图片容器
+    image_frame = ttk.Frame(bottom_frame)
+    image_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True, padx=10, pady=5)
+    # ================= 右侧说明部分 =================
+    # ========== 动态说明系统 ==========
+    try:
+        # 根据方法类型加载不同说明
+        if method == timeDomainSimu:
+            desc_img = Image.open('describe/TimeDomainDescribe.png')
+            formula_img = Image.open('describe/TimeDomainFormula.png')
+            desc_text = """【时域分析模型】
+    传递函数：H(s) = 25/(s² + 6s + 25)
+    分析指标：
+    1. 上升时间 Tr
+    2. 峰值时间 Tp
+    3. 超调量 σ%
+    4. 调节时间 Ts (±2%)
+    5. 阻尼比 ζ
+    6. 自然频率 ωn"""
+
+        elif method == rootLocusSimu:
+            desc_img = Image.open('describe/RootLocusDescribe.png')
+            formula_img = Image.open('describe/RootLocusFormula.png')
+            desc_text = """【根轨迹分析】
+    开环传递函数：
+    G(s)H(s) = K(s+1)/[s(s+2)(s+3)]
+    分析要点：
+    1. 渐近线方向
+    2. 分离点/会合点
+    3. 与虚轴交点
+    4. 稳定增益范围"""
+
+        elif method == frequencyDomainSimu:
+            desc_img = Image.open('describe/FrequencyDomainDescribe.png')
+            formula_img = Image.open('describe/FrequencyDomainFormula.png')
+            desc_text = """【频域分析】
+    性能指标：
+    - 幅值裕度 Gm (dB)
+    - 相位裕度 Pm (deg)
+    - 截止频率 ωc (rad/s)
+    稳定性判据：
+    Gm > 0 dB 且 Pm > 0 deg"""
+
+        # 调整图片尺寸
+        desc_img = desc_img.resize((400, 200))
+        formula_img = formula_img.resize((400, 100))
+
+        # 创建图片容器
+        img_paned = ttk.PanedWindow(desc_frame, orient=tk.VERTICAL)
+        img_paned.pack(fill=tk.BOTH, expand=True)
+
+        # 模型示意图
+        desc_img_tk = ImageTk.PhotoImage(desc_img)
+        lbl_desc = ttk.Label(img_paned, image=desc_img_tk)
+        lbl_desc.image = desc_img_tk
+        img_paned.add(lbl_desc)
+
+        # 公式图片
+        formula_img_tk = ImageTk.PhotoImage(formula_img)
+        lbl_formula = ttk.Label(img_paned, image=formula_img_tk)
+        lbl_formula.image = formula_img_tk
+        img_paned.add(lbl_formula)
+
+        # 文字说明
+        text_frame = ttk.Frame(desc_frame)
+        text_frame.pack(fill=tk.BOTH, expand=True)
+
+        text_area = tk.Text(text_frame, wrap=tk.WORD,
+                            height=8, width=40,
+                            font=("宋体", 10),
+                            bg="#f0f0f0",
+                            padx=10, pady=10)
+        text_area.insert(tk.END, desc_text)
+        text_area.configure(state='disabled')
+        text_area.pack(fill=tk.BOTH, expand=True)
+
+    except Exception as e:
+        error_lbl = ttk.Label(desc_frame, text=f"说明加载失败：{str(e)}", foreground="red")
+        error_lbl.pack()
+
+
+
     # 定义按钮点击事件
     def on_button_click(compensation_type=None):
         # 清除上一次的输出
@@ -317,38 +346,39 @@ def create_interface(root, method, title, input_labels, input_widths, window_siz
         # 获取输入值
         input_values = [input_entry.get() for input_entry in inputs]
         # 调用方法并获取输出
-        outputs = method(*input_values) if method != compensationSimu else method(*input_values, compensation_type)
-
-        output_label = tk.Label(output_frame, text="输出结果：")
-        output_label.pack()
-        # 动态创建输出框并更新内容
-        for output in outputs:
-            output_label = tk.Label(output_frame, text=output)
-            output_label.pack()
-
         if method == timeDomainSimu:
+            outputs = method(*input_values)
+            # 动态创建输出框并更新内容
+            for output in outputs:
+                output_label = tk.Label(output_frame, text=output)
+                output_label.pack()
             # 读取并显示第一张plot图
             img1 = Image.open('pic/TimeDomain/step_response.png')
-            img1 = img1.resize((500, 330))  # 调整图片大小
+            img1 = img1.resize((500, 400))  # 调整图片大小
             img1_tk = ImageTk.PhotoImage(img1)
             img_label1 = tk.Label(image_frame, image=img1_tk)
             img_label1.image = img1_tk  # 避免图片被回收
-            img_label1.pack(side=tk.LEFT, padx=(0, 20))  # 设置右边外边距为 20
+            img_label1.pack(side=tk.LEFT)
             # 读取并显示第二张plot图
             img2 = Image.open('pic/TimeDomain/ramp_response.png')  # 假设这是斜坡响应的图片文件名
-            img2 = img2.resize((500, 330))
+            img2 = img2.resize((500, 400))
             img2_tk = ImageTk.PhotoImage(img2)
             img_label2 = tk.Label(image_frame, image=img2_tk)
             img_label2.image = img2_tk
             img_label2.pack(side=tk.RIGHT)
         elif method == rootLocusSimu:
+            outputs = method(*input_values)
+            # 动态创建输出框并更新内容
+            for output in outputs:
+                output_label = tk.Label(output_frame, text=output)
+                output_label.pack()
             # 读取并显示第一张plot图
             img1 = Image.open('pic/RootLocus/rootLocus.png')
             img1 = img1.resize((500, 400))  # 调整图片大小
             img1_tk = ImageTk.PhotoImage(img1)
             img_label1 = tk.Label(image_frame, image=img1_tk)
             img_label1.image = img1_tk  # 避免图片被回收
-            img_label1.pack(side=tk.LEFT, padx=(0, 20))
+            img_label1.pack(side=tk.LEFT)
             # 读取并显示第二张plot图
             img2 = Image.open('pic/RootLocus/step_response.png')
             img2 = img2.resize((500, 400))
@@ -357,13 +387,18 @@ def create_interface(root, method, title, input_labels, input_widths, window_siz
             img_label2.image = img2_tk
             img_label2.pack(side=tk.RIGHT)
         elif method == frequencyDomainSimu:
+            outputs = method(*input_values)
+            # 动态创建输出框并更新内容
+            for output in outputs:
+                output_label = tk.Label(output_frame, text=output)
+                output_label.pack()
             # 读取并显示第一张plot图
             img1 = Image.open('pic/FrequencyDomain/BodePlot.png')
             img1 = img1.resize((500, 400))  # 调整图片大小
             img1_tk = ImageTk.PhotoImage(img1)
             img_label1 = tk.Label(image_frame, image=img1_tk)
             img_label1.image = img1_tk  # 避免图片被回收
-            img_label1.pack(side=tk.LEFT, padx=(0, 20))
+            img_label1.pack(side=tk.LEFT)
             # 读取并显示第二张plot图
             img2 = Image.open('pic/FrequencyDomain/NyquistPlot.png')
             img2 = img2.resize((500, 400))
@@ -372,13 +407,18 @@ def create_interface(root, method, title, input_labels, input_widths, window_siz
             img_label2.image = img2_tk
             img_label2.pack(side=tk.RIGHT)
         elif method == compensationSimu:
+            outputs = method(*input_values, compensation_type)
+            # 动态创建输出框并更新内容
+            for output in outputs:
+                output_label = tk.Label(output_frame, text=output)
+                output_label.pack()
             if compensation_type == 'lead':
                 img1 = Image.open('pic/Compensation/lead/Original.png')
                 img1 = img1.resize((500, 400))  # 调整图片大小
                 img1_tk = ImageTk.PhotoImage(img1)
                 img_label1 = tk.Label(image_frame, image=img1_tk)
                 img_label1.image = img1_tk  # 避免图片被回收
-                img_label1.pack(side=tk.LEFT, padx=(0, 20))
+                img_label1.pack(side=tk.LEFT)
                 # 读取并显示第二张plot图
                 img2 = Image.open('pic/Compensation/lead/LeadCompensated.png')
                 img2 = img2.resize((500, 400))
@@ -392,7 +432,7 @@ def create_interface(root, method, title, input_labels, input_widths, window_siz
                 img1_tk = ImageTk.PhotoImage(img1)
                 img_label1 = tk.Label(image_frame, image=img1_tk)
                 img_label1.image = img1_tk  # 避免图片被回收
-                img_label1.pack(side=tk.LEFT, padx=(0, 20))
+                img_label1.pack(side=tk.LEFT)
                 # 读取并显示第二张plot图
                 img2 = Image.open('pic/Compensation/lag/LagCompensated.png')
                 img2 = img2.resize((500, 400))
@@ -401,20 +441,35 @@ def create_interface(root, method, title, input_labels, input_widths, window_siz
                 img_label2.image = img2_tk
                 img_label2.pack(side=tk.RIGHT)
         elif method == freeFallSimu:
+            outputs = method(*input_values)
+            # 动态创建输出框并更新内容
+            for output in outputs:
+                output_label = tk.Label(output_frame, text=output)
+                output_label.pack()
             img = Image.open('pic/FreeFall/freeFall.png')
             img = img.resize((500, 400))  # 调整图片大小
             img_tk = ImageTk.PhotoImage(img)
             img_label = tk.Label(image_frame, image=img_tk)
             img_label.image = img_tk  # 避免图片被回收
-            img_label.pack(side=tk.LEFT, padx=(0, 20))
+            img_label.pack(side=tk.LEFT)
         elif method == massSpringDamper:
+            outputs = method(*input_values)
+            # 动态创建输出框并更新内容
+            for output in outputs:
+                output_label = tk.Label(output_frame, text=output)
+                output_label.pack()
             img = Image.open('pic/MassSpringDamper/massSpringDamper.png')
             img = img.resize((500, 400))  # 调整图片大小
             img_tk = ImageTk.PhotoImage(img)
             img_label = tk.Label(image_frame, image=img_tk)
             img_label.image = img_tk  # 避免图片被回收
-            img_label.pack(side=tk.LEFT, padx=(0, 20))
+            img_label.pack(side=tk.LEFT)
         elif method == dcMotor:
+            outputs = method(*input_values)
+            # 动态创建输出框并更新内容
+            for output in outputs:
+                output_label = tk.Label(output_frame, text=output)
+                output_label.pack()
             # 读取并显示第一张plot图
             img = Image.open('pic/DCMotor/dcMotor.png')
             img = img.resize((500, 400))  # 调整图片大小
@@ -423,6 +478,11 @@ def create_interface(root, method, title, input_labels, input_widths, window_siz
             img_label.image = img1_tk  # 避免图片被回收
             img_label.pack()
         elif method == oneInvertedPendulum:
+            outputs = method(*input_values)
+            # 动态创建输出框并更新内容
+            for output in outputs:
+                output_label = tk.Label(output_frame, text=output)
+                output_label.pack()
             # 读取并显示第一张plot图
             img = Image.open('pic/OneInvertedPendulum/invertedPendulum.png')
             img = img.resize((500, 400))  # 调整图片大小
@@ -465,114 +525,27 @@ def create_interface(root, method, title, input_labels, input_widths, window_siz
         button_ip = tk.Button(new_window, text="一级倒立摆仿真设计", command=on_button_click)
         button_ip.grid(row=row, column=col, padx=5, pady=5, columnspan=8)
 
-    # ================== 增强的媒体内容展示 ==================
-    media_frame_width = 1000  # 可根据需要调整
-    media_frame_height = 280  # 可根据需要调整
-    media_frame = tk.Frame(new_window, width=media_frame_width, height=media_frame_height)
-    media_frame.pack_propagate(0)  # 禁止框架根据内容调整大小
-    # 布局处理
-    if layout in ['grid_DC', 'grid_IP']:
-        new_window.columnconfigure(0, weight=1)
-        new_window.rowconfigure(1000, weight=1)
-        media_frame.grid(row=1000, column=0, columnspan=8, pady=10, sticky='nsew')
+    # 创建输出框
+    if method == dcMotor:
+        # 创建输出框容器
+        output_frame = tk.Frame(new_window)
+        output_frame.grid(pady=10)
+        # 创建图片容器
+        image_frame = tk.Frame(new_window)
+        image_frame.grid(pady=10, columnspan=8)
+    elif method == oneInvertedPendulum:
+        # 创建输出框容器
+        output_frame = tk.Frame(new_window)
+        output_frame.grid(pady=10)
+        # 创建图片容器
+        image_frame = tk.Frame(new_window)
+        image_frame.grid(pady=10, columnspan=8)
     else:
-        media_frame.pack(pady=10, fill=tk.BOTH, expand=True, anchor='center')
-
-    # 加载媒体内容配置
-    media_items = MODEL_MEDIA_CONFIG.get(method, [])
-    # 创建水平容器
-    # 固定水平容器的大小
-    horizontal_container = tk.Frame(media_frame, width=media_frame_width, height=media_frame_height)
-    horizontal_container.pack_propagate(0)  # 禁止容器根据内容调整大小
-    horizontal_container.pack(pady=3, fill=tk.NONE, expand=False)
-    for item in media_items:
-        container = tk.Frame(horizontal_container)
-        container.pack(side=tk.LEFT, padx=8, fill=tk.BOTH, expand=False)
-
-        try:
-            if item['type'] == 'image':
-                # 文字描述
-                desc_label = tk.Label(
-                    container,
-                    text=item['desc'],
-                    font=('微软雅黑', 10, 'bold'),
-                    fg='#333333'
-                )
-                desc_label.pack(anchor='w', padx=5)
-
-                # 图片加载
-                img = Image.open(item['path'])
-                img = img.resize((item['width'], item['height']))
-                img_tk = ImageTk.PhotoImage(img)
-                img_label = tk.Label(container, image=img_tk)
-                img_label.image = img_tk
-                img_label.pack()
-
-                # 自定义文本
-                if 'text' in item:
-                    text_label = tk.Label(
-                        container,
-                        text=item['text'],
-                        font=('宋体', 9),
-                        fg='#666666',
-                        justify='left'
-                    )
-                    text_label.pack(anchor='w', padx=5, pady=(2, 0))
-            elif item['type'] == 'text':
-                # 获取样式配置，设置默认值
-                style = item.get('style', {})
-                default_style = {
-                    'font': ('宋体', 10),
-                    'fg': '#333333',
-                    'bg': media_frame.cget('bg'),
-                    'wraplength': 600,
-                    'justify': 'left',
-                    'anchor': 'w',
-                    'padx': 0,
-                    'pady': 0
-                }
-                final_style = {**default_style, **style}
-
-                # 创建文本标签
-                text_label = tk.Label(
-                    container,
-                    text=item['content'],
-                    font=final_style['font'],
-                    fg=final_style['fg'],
-                    bg=final_style['bg'],
-                    wraplength=final_style['wraplength'],
-                    justify=final_style['justify'],
-                    anchor=final_style['anchor']
-                )
-                text_label.pack(
-                    side=tk.TOP,
-                    anchor=final_style['anchor'],
-                    padx=final_style['padx'],
-                    pady=final_style['pady'],
-                    fill=tk.X
-                )
-
-        except Exception as e:
-            error_msg = f"内容加载失败: {str(e)}"
-            error_label = tk.Label(container, text=error_msg, fg='red')
-            error_label.pack()
-
-    # ================== 结束媒体内容区域 ==================
-    # 创建一个新的框架来包含输出框和图片框
-    result_frame = tk.Frame(new_window)
-    if layout in ['grid_DC', 'grid_IP']:
-        result_frame.grid(row=1001, column=0, columnspan=8, pady=10)
-    else:
-        result_frame.pack(pady=10)
-
-    # 创建输出框容器
-    output_frame = tk.Frame(result_frame, width=500, height=330)
-    output_frame.pack_propagate(0)  # 禁止框架根据内容调整大小
-    output_frame.pack(side=tk.LEFT)
-
-    # 创建图片容器
-    image_frame = tk.Frame(result_frame)
-    image_frame.pack(side=tk.LEFT)
+        output_frame = tk.Frame(new_window)
+        output_frame.pack(pady=10)
+        # 创建图片容器
+        image_frame = tk.Frame(new_window)
+        image_frame.pack(pady=10)
 
 
 # 创建主窗口
